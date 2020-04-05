@@ -1,0 +1,66 @@
+import requests
+import re
+import time
+import json
+
+# #榜单第一页url
+# http://www.htqyy.com/top/hot
+# http://www.htqyy.com/top/musicList/hot?pageIndex=0&pageSize=20
+# #第二页
+# http://www.htqyy.com/top/musicList/hot?pageIndex=1&pageSize=20
+# #第三页
+# http://www.htqyy.com/top/musicList/hot?pageIndex=2&pageSize=20
+
+# #歌曲播放url
+# http://www.htqyy.com/play/33
+#歌曲资源所在url
+#http://f2.htqyy.com/play7/3/mp3/2
+#page=int(input("请输入获取网页数量："))
+songID=[] #列表存放歌曲编号
+songName=[]  #列表存放歌曲名字
+#构造url
+for i in range(0,1):
+	url="http://www.9ku.com/geshou/1019.htm"    # 许巍
+	url="http://www.9ku.com/geshou/1075.htm"    #beyond
+	html=requests.get(url)  #获取音乐榜单的网页信息
+	strr=html.text
+	# print(strr)
+
+	pat2=r'href="/play/(.*?).htm" class="songNameA"'
+	pat1=r'<font>(.*?)</font>'
+	#	<span class="title"><a href="/play/658" target="play" title="天空之城钢琴曲" sid="658">天空之城钢琴曲</a></span>
+	idlist=re.findall(pat2,strr)   #从网页中获取所有歌曲ID
+	titlelist=re.findall(pat1,strr)  #从网页中获取所有歌曲名字
+	songID.extend(idlist)   #把多个列表合成一个列表
+	songName.extend(titlelist)
+
+print(songName)
+print(songID)
+print(len(songID))
+print(len(songName))
+
+#http://www.9ku.com/html/playjs/894/893142.js
+#http://www.9ku.com/html/playjs/878/877683.js
+
+for i in range(0,len(songID)):
+	# songurl="http://mp32.9ku.com/upload/2016/03/22/62878.m4a"   #构造歌曲url
+	# songurl="http://mp3.9ku.com/hot/2004/07-13/12697.mp3"
+	num=int(songID[i][0:3])+1
+	songurl="http://www.9ku.com/html/playjs/"+str(num)+"/"+str(songID[i])+".js"
+	# print(songurl)
+	songname=songName[i]
+
+	data2=requests.get(songurl).text  #二进
+	# print(data2)
+
+	pat3='"wma":"(.*?)","m4a"'
+	url2=re.findall(pat3,data2)   #从网页中获取所有歌曲ID
+	url3=url2[0]
+	result_url = eval(repr(url3).replace('\\', ''))
+	# print(result_url)
+	data=requests.get(result_url).content
+
+	print("正在下载第",i+1,"首")
+	with open("E:\\music6\\{}.mp3".format(songname),"wb") as f:
+		f.write(data)
+	time.sleep(0.5)
